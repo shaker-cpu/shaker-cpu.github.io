@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>سایت زیبا | ثبت‌نام و ورود</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Vazir', 'Tahoma', sans-serif;
+        }
+
+        @font-face {
+            font-family: 'Vazir';
+            src: url('https://cdn.fontcdn.ir/Font/Persian/Vazir/Vazir.eot');
+            src: url('https://cdn.fontcdn.ir/Font/Persian/Vazir/Vazir.eot?#iefix') format('embedded-opentype'),
+                 url('https://cdn.fontcdn.ir/Font/Persian/Vazir/Vazir.woff2') format('woff2'),
+                 url('https://cdn.fontcdn.ir/Font/Persian/Vazir/Vazir.woff') format('woff'),
+                 url('https://cdn.fontcdn.ir/Font/Persian/Vazir/Vazir.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 500px;
+            padding: 40px;
+            backdrop-filter: blur(10px);
+            animation: slideUp 0.6s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 0.9em;
+        }
+
+        .tab-container {
+            display: flex;
+            margin-bottom: 30px;
+            border-radius: 10px;
+            overflow: hidden;
+            background: #f0f0f0;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            color: #666;
+        }
+
+        .tab.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+            font-size: 0.9em;
+        }
+
+        input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            margin: 20px 0;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+            margin-left: 10px;
+            transform: scale(1.2);
+            cursor: pointer;
+        }
+
+        .checkbox-group label {
+            margin-bottom: 0;
+            cursor: pointer;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 15px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #f56565 0%, #c53030 100%);
+        }
+
+        .btn-danger:hover {
+            box-shadow: 0 10px 30px rgba(245, 101, 101, 0.4);
+        }
+
+        .message {
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.success {
+            background: #c6f6d5;
+            color: #22543d;
+            border-right: 4px solid #48bb78;
+        }
+
+        .message.error {
+            background: #fed7d7;
+            color: #742a2a;
+            border-right: 4px solid #f56565;
+        }
+
+        .message.info {
+            background: #bee3f8;
+            color: #2c5282;
+            border-right: 4px solid #4299e1;
+        }
+
+        .code-input {
+            text-align: center;
+            letter-spacing: 5px;
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .user-panel {
+            text-align: center;
+        }
+
+        .user-email {
+            font-size: 1.2em;
+            color: #667eea;
+            margin: 20px 0;
+            padding: 15px;
+            background: #f0f0f0;
+            border-radius: 10px;
+        }
+
+        .footer-links {
+            text-align: center;
+            margin-top: 20px;
+            color: #999;
+            font-size: 0.9em;
+        }
+
+        .footer-links a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .footer-links a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="app">
+        <!-- بخش ثبت‌نام/ورود -->
+        <div id="authSection">
+            <h1>✨ خوش آمدید ✨</h1>
+            <div class="subtitle">به جمع ما بپیوندید</div>
+            
+            <div class="tab-container">
+                <div class="tab active" onclick="switchTab('login')" id="loginTab">ورود</div>
+                <div class="tab" onclick="switchTab('register')" id="registerTab">ثبت‌نام</div>
+            </div>
+
+            <!-- فرم ورود -->
+            <div id="loginForm">
+                <div class="form-group">
+                    <label>📧 ایمیل</label>
+                    <input type="email" id="loginEmail" placeholder="ایمیل خود را وارد کنید">
+                </div>
+                <div class="form-group">
+                    <label>🔒 رمز عبور</label>
+                    <input type="password" id="loginPassword" placeholder="رمز عبور خود را وارد کنید">
+                </div>
+                <button class="btn" onclick="login()">ورود</button>
+            </div>
+
+            <!-- فرم ثبت‌نام -->
+            <div id="registerForm" class="hidden">
+                <div class="form-group">
+                    <label>📧 ایمیل</label>
+                    <input type="email" id="regEmail" placeholder="ایمیل خود را وارد کنید">
+                </div>
+                <div class="form-group">
+                    <label>🔒 رمز عبور</label>
+                    <input type="password" id="regPassword" placeholder="رمز عبور خود را وارد کنید">
+                </div>
+                <div class="form-group">
+                    <label>🔒 تکرار رمز عبور</label>
+                    <input type="password" id="regConfirmPassword" placeholder="رمز عبور را تکرار کنید">
+                </div>
+                
+                <!-- کد تأیید ایمیل -->
+                <div id="verificationSection" class="hidden">
+                    <div class="form-group">
+                        <label>📨 کد تأیید</label>
+                        <input type="text" class="code-input" id="verificationCode" placeholder="••••••" maxlength="6">
+                    </div>
+                    <button class="btn" onclick="verifyCode()">تأیید کد</button>
+                </div>
+
+                <!-- شرایط و قوانین -->
+                <div class="checkbox-group">
+                    <input type="checkbox" id="acceptRules">
+                    <label for="acceptRules">من <a href="#" onclick="showRules()">قوانین</a> را خواندم و پذیرفتم</label>
+                </div>
+
+                <button class="btn" onclick="sendVerificationCode()" id="sendCodeBtn">ارسال کد تأیید</button>
+            </div>
+
+            <!-- پیام‌ها -->
+            <div id="message" class="message"></div>
+        </div>
+
+        <!-- پنل کاربری -->
+        <div id="userPanel" class="hidden">
+            <h1>👤 پنل کاربری</h1>
+            <div class="user-email" id="userEmail"></div>
+            
+            <button class="btn" onclick="logout()">خروج از حساب</button>
+            <button class="btn btn-danger" onclick="confirmDeleteAccount()">حذف اکانت</button>
+            
+            <div class="footer-links">
+                <p>به پنل کاربری خود خوش آمدید</p>
+            </div>
+        </div>
+
+        <!-- مودال قوانین -->
+        <div id="rulesModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
+            <div style="background: white; padding: 30px; border-radius: 20px; max-width: 500px; max-height: 80vh; overflow-y: auto;">
+                <h2 style="margin-bottom: 20px;">📜 قوانین و مقررات</h2>
+                <div style="margin-bottom: 20px;">
+                    <p>1. اطلاعات وارد شده باید معتبر باشد.</p>
+                    <p>2. ایمیل باید فعال باشد.</p>
+                    <p>3. رمز عبور باید حداقل ۶ کاراکتر باشد.</p>
+                    <p>4. مسئولیت فعالیت‌ها با کاربر است.</p>
+                    <p>5. هر کاربر فقط یک اکانت می‌تواند داشته باشد.</p>
+                    <p>6. در صورت تخلف، اکانت حذف می‌شود.</p>
+                </div>
+                <button class="btn" onclick="closeRules()">بستن</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ذخیره‌سازی در localStorage
+        let users = JSON.parse(localStorage.getItem('users')) || [];
+        let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
+        let verificationCodes = JSON.parse(localStorage.getItem('verificationCodes')) || {};
+
+        // بررسی وضعیت اولیه
+        if (currentUser) {
+            showUserPanel();
+        }
+
+        function switchTab(tab) {
+            if (tab === 'login') {
+                document.getElementById('loginTab').classList.add('active');
+                document.getElementById('registerTab').classList.remove('active');
+                document.getElementById('loginForm').classList.remove('hidden');
+                document.getElementById('registerForm').classList.add('hidden');
+            } else {
+                document.getElementById('loginTab').classList.remove('active');
+                document.getElementById('registerTab').classList.add('active');
+                document.getElementById('loginForm').classList.add('hidden');
+                document.getElementById('registerForm').classList.remove('hidden');
+            }
+            hideMessage();
+        }
+
+        function showMessage(text, type) {
+            const messageEl = document.getElementById('message');
+            messageEl.textContent = text;
+            messageEl.className = `message ${type}`;
+            messageEl.style.display = 'block';
+            
+            setTimeout(() => {
+                messageEl.style.display = 'none';
+            }, 5000);
+        }
+
+        function hideMessage() {
+            document.getElementById('message').style.display = 'none';
+        }
+
+        // تولید کد تصادفی ۶ رقمی
+        function generateCode() {
+            return Math.floor(100000 + Math.random() * 900000).toString();
+        }
+
+        // ارسال کد تأیید (شبیه‌سازی)
+        function sendVerificationCode() {
+            const email = document.getElementById('regEmail').value;
+            const password = document.getElementById('regPassword').value;
+            const confirmPassword = document.getElementById('regConfirmPassword').value;
+            const acceptRules = document.getElementById('acceptRules').checked;
+
+            // اعتبارسنجی
+            if (!email || !password || !confirmPassword) {
+                showMessage('لطفاً تمام فیلدها را پر کنید', 'error');
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                showMessage('رمز عبور و تکرار آن مطابقت ندارند', 'error');
+                return;
+            }
+
+            if (password.length < 6) {
+                showMessage('رمز عبور باید حداقل ۶ کاراکتر باشد', 'error');
+                return;
+            }
+
+            if (!acceptRules) {
+                showMessage('لطفاً قوانین را مطالعه و پذیرفته باشید', 'error');
+                return;
+            }
+
+            // بررسی تکراری نبودن ایمیل
+            if (users.some(user => user.email === email)) {
+                showMessage('این ایمیل قبلاً ثبت‌نام کرده است', 'error');
+                return;
+            }
+
+            // تولید و ذخیره کد
+            const code = generateCode();
+            verificationCodes[email] = {
+                code: code,
+                password: password,
+                timestamp: Date.now()
+            };
+            localStorage.setItem('verificationCodes', JSON.stringify(verificationCodes));
+
+            // شبیه‌سازی ارسال ایمیل
+            console.log(`کد تأیید برای ${email}: ${code}`);
+            showMessage(`کد تأیید به ایمیل ${email} ارسال شد`, 'success');
+
+            // نمایش بخش تأیید کد
+            document.getElementById('verificationSection').classList.remove('hidden');
+            document.getElementById('sendCodeBtn').textContent = 'ارسال مجدد کد';
+        }
+
+        // تأیید کد
+        function verifyCode() {
+            const email = document.getElementById('regEmail').value;
+            const code = document.getElementById('verificationCode').value;
+            const savedCode = verificationCodes[email];
+
+            if (!savedCode) {
+                showMessage('لطفاً ابتدا درخواست کد دهید', 'error');
+                return;
+            }
+
+            if (Date.now() - savedCode.timestamp > 300000) { // 5 دقیقه
+                showMessage('کد منقضی شده است. لطفاً دوباره درخواست دهید', 'error');
+                delete verificationCodes[email];
+                localStorage.setItem('verificationCodes', JSON.stringify(verificationCodes));
+                return;
+            }
+
+            if (savedCode.code === code) {
+                // ثبت‌نام موفق
+                const newUser = {
+                    email: email,
+                    password: savedCode.password,
+                    registeredAt: new Date().toISOString()
+                };
+                
+                users.push(newUser);
+                localStorage.setItem('users', JSON.stringify(users));
+                
+                delete verificationCodes[email];
+                localStorage.setItem('verificationCodes', JSON.stringify(verificationCodes));
+                
+                showMessage('ثبت‌نام با موفقیت انجام شد. لطفاً وارد شوید', 'success');
+                
+                // برگشت به فرم ورود
+                switchTab('login');
+                document.getElementById('regEmail').value = '';
+                document.getElementById('regPassword').value = '';
+                document.getElementById('regConfirmPassword').value = '';
+                document.getElementById('verificationCode').value = '';
+                document.getElementById('verificationSection').classList.add('hidden');
+                document.getElementById('acceptRules').checked = false;
+            } else {
+                showMessage('کد تأیید اشتباه است', 'error');
+            }
+        }
+
+        // ورود
+        function login() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            if (!email || !password) {
+                showMessage('لطفاً ایمیل و رمز عبور را وارد کنید', 'error');
+                return;
+            }
+
+            const user = users.find(u => u.email === email && u.password === password);
+
+            if (user) {
+                currentUser = user;
+                localStorage.setItem('currentUser', JSON.stringify(user));
+                showUserPanel();
+                showMessage('ورود موفقیت‌آمیز بود', 'success');
+            } else {
+                showMessage('ایمیل یا رمز عبور اشتباه است', 'error');
+            }
+        }
+
+        // خروج
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem('currentUser');
+            showAuthSection();
+            document.getElementById('loginEmail').value = '';
+            document.getElementById('loginPassword').value = '';
+            showMessage('با موفقیت خارج شدید', 'info');
+        }
+
+        // نمایش پنل کاربری
+        function showUserPanel() {
+            document.getElementById('authSection').classList.add('hidden');
+            document.getElementById('userPanel').classList.remove('hidden');
+            document.getElementById('userEmail').textContent = currentUser.email;
+        }
+
+        // نمایش بخش احراز هویت
+        function showAuthSection() {
+            document.getElementById('authSection').classList.remove('hidden');
+            document.getElementById('userPanel').classList.add('hidden');
+        }
+
+        // تأیید حذف اکانت
+        function confirmDeleteAccount() {
+            if (confirm('آیا از حذف اکانت خود اطمینان دارید؟ این عمل غیرقابل بازگشت است.')) {
+                deleteAccount();
+            }
+        }
+
+        // حذف اکانت
+        function deleteAccount() {
+            users = users.filter(u => u.email !== currentUser.email);
+            localStorage.setItem('users', JSON.stringify(users));
+            
+            currentUser = null;
+            localStorage.removeItem('currentUser');
+            
+            showAuthSection();
+            showMessage('اکانت شما با موفقیت حذف شد', 'success');
+        }
+
+        // نمایش قوانین
+        function showRules() {
+            document.getElementById('rulesModal').style.display = 'flex';
+        }
+
+        // بستن قوانین
+        function closeRules() {
+            document.getElementById('rulesModal').style.display = 'none';
+        }
+
+        // بستن مودال با کلیک روی پس‌زمینه
+        window.onclick = function(event) {
+            const modal = document.getElementById('rulesModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
