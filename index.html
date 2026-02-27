@@ -3,7 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>سایت زیبا | ثبت‌نام و ورود</title>
+    <title>سایت زیبا با دیتابیس | ثبت‌نام و ورود</title>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    
     <style>
         * {
             margin: 0;
@@ -224,6 +230,25 @@
             padding: 15px;
             background: #f0f0f0;
             border-radius: 10px;
+            word-break: break-all;
+        }
+
+        .user-info {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: right;
+        }
+
+        .user-info-item {
+            margin: 10px 0;
+            color: #555;
+        }
+
+        .user-info-item span {
+            color: #667eea;
+            font-weight: bold;
         }
 
         .footer-links {
@@ -236,10 +261,32 @@
         .footer-links a {
             color: #667eea;
             text-decoration: none;
+            cursor: pointer;
         }
 
         .footer-links a:hover {
             text-decoration: underline;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
         }
     </style>
 </head>
@@ -265,7 +312,7 @@
                     <label>🔒 رمز عبور</label>
                     <input type="password" id="loginPassword" placeholder="رمز عبور خود را وارد کنید">
                 </div>
-                <button class="btn" onclick="login()">ورود</button>
+                <button class="btn" onclick="login()" id="loginBtn">ورود</button>
             </div>
 
             <!-- فرم ثبت‌نام -->
@@ -273,6 +320,10 @@
                 <div class="form-group">
                     <label>📧 ایمیل</label>
                     <input type="email" id="regEmail" placeholder="ایمیل خود را وارد کنید">
+                </div>
+                <div class="form-group">
+                    <label>👤 نام کاربری</label>
+                    <input type="text" id="regUsername" placeholder="نام کاربری خود را وارد کنید">
                 </div>
                 <div class="form-group">
                     <label>🔒 رمز عبور</label>
@@ -283,22 +334,13 @@
                     <input type="password" id="regConfirmPassword" placeholder="رمز عبور را تکرار کنید">
                 </div>
                 
-                <!-- کد تأیید ایمیل -->
-                <div id="verificationSection" class="hidden">
-                    <div class="form-group">
-                        <label>📨 کد تأیید</label>
-                        <input type="text" class="code-input" id="verificationCode" placeholder="••••••" maxlength="6">
-                    </div>
-                    <button class="btn" onclick="verifyCode()">تأیید کد</button>
-                </div>
-
                 <!-- شرایط و قوانین -->
                 <div class="checkbox-group">
                     <input type="checkbox" id="acceptRules">
                     <label for="acceptRules">من <a href="#" onclick="showRules()">قوانین</a> را خواندم و پذیرفتم</label>
                 </div>
 
-                <button class="btn" onclick="sendVerificationCode()" id="sendCodeBtn">ارسال کد تأیید</button>
+                <button class="btn" onclick="register()" id="registerBtn">ثبت‌نام</button>
             </div>
 
             <!-- پیام‌ها -->
@@ -309,6 +351,21 @@
         <div id="userPanel" class="hidden">
             <h1>👤 پنل کاربری</h1>
             <div class="user-email" id="userEmail"></div>
+            
+            <div class="user-info" id="userInfo">
+                <div class="user-info-item">
+                    <span>📧 ایمیل:</span> <span id="infoEmail"></span>
+                </div>
+                <div class="user-info-item">
+                    <span>👤 نام کاربری:</span> <span id="infoUsername"></span>
+                </div>
+                <div class="user-info-item">
+                    <span>📅 تاریخ ثبت‌نام:</span> <span id="infoDate"></span>
+                </div>
+                <div class="user-info-item">
+                    <span>🆔 شناسه:</span> <span id="infoId"></span>
+                </div>
+            </div>
             
             <button class="btn" onclick="logout()">خروج از حساب</button>
             <button class="btn btn-danger" onclick="confirmDeleteAccount()">حذف اکانت</button>
@@ -329,6 +386,8 @@
                     <p>4. مسئولیت فعالیت‌ها با کاربر است.</p>
                     <p>5. هر کاربر فقط یک اکانت می‌تواند داشته باشد.</p>
                     <p>6. در صورت تخلف، اکانت حذف می‌شود.</p>
+                    <p>7. اطلاعات شما در دیتابیس ذخیره می‌شود.</p>
+                    <p>8. می‌توانید هر زمان اکانت خود را حذف کنید.</p>
                 </div>
                 <button class="btn" onclick="closeRules()">بستن</button>
             </div>
@@ -336,16 +395,52 @@
     </div>
 
     <script>
-        // ذخیره‌سازی در localStorage
-        let users = JSON.parse(localStorage.getItem('users')) || [];
-        let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
-        let verificationCodes = JSON.parse(localStorage.getItem('verificationCodes')) || {};
+        // ==================== تنظیمات Firebase ====================
+        const firebaseConfig = {
+            apiKey: "AIzaSyAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+            authDomain: "your-project.firebaseapp.com",
+            projectId: "your-project",
+            storageBucket: "your-project.appspot.com",
+            messagingSenderId: "000000000000",
+            appId: "1:000000000000:web:aaaaaaaaaaaaaaaaaaaaaa"
+        };
 
-        // بررسی وضعیت اولیه
-        if (currentUser) {
-            showUserPanel();
-        }
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
 
+        // ==================== تنظیمات اولیه ====================
+        // بررسی وضعیت احراز هویت
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                // دریافت اطلاعات اضافی از Firestore
+                try {
+                    const userDoc = await db.collection('users').doc(user.uid).get();
+                    if (userDoc.exists) {
+                        const userData = userDoc.data();
+                        showUserPanel(user, userData);
+                    } else {
+                        // اگر سند کاربر وجود نداشت، ایجاد می‌کنیم
+                        const newUserData = {
+                            email: user.email,
+                            username: user.displayName || 'کاربر',
+                            registeredAt: user.metadata.creationTime,
+                            uid: user.uid
+                        };
+                        await db.collection('users').doc(user.uid).set(newUserData);
+                        showUserPanel(user, newUserData);
+                    }
+                } catch (error) {
+                    console.error('خطا در دریافت اطلاعات کاربر:', error);
+                    showMessage('خطا در دریافت اطلاعات کاربر', 'error');
+                }
+            } else {
+                showAuthSection();
+            }
+        });
+
+        // ==================== توابع اصلی ====================
         function switchTab(tab) {
             if (tab === 'login') {
                 document.getElementById('loginTab').classList.add('active');
@@ -376,20 +471,16 @@
             document.getElementById('message').style.display = 'none';
         }
 
-        // تولید کد تصادفی ۶ رقمی
-        function generateCode() {
-            return Math.floor(100000 + Math.random() * 900000).toString();
-        }
-
-        // ارسال کد تأیید (شبیه‌سازی)
-        function sendVerificationCode() {
+        // ==================== ثبت‌نام ====================
+        async function register() {
             const email = document.getElementById('regEmail').value;
+            const username = document.getElementById('regUsername').value;
             const password = document.getElementById('regPassword').value;
             const confirmPassword = document.getElementById('regConfirmPassword').value;
             const acceptRules = document.getElementById('acceptRules').checked;
 
             // اعتبارسنجی
-            if (!email || !password || !confirmPassword) {
+            if (!email || !username || !password || !confirmPassword) {
                 showMessage('لطفاً تمام فیلدها را پر کنید', 'error');
                 return;
             }
@@ -409,79 +500,61 @@
                 return;
             }
 
-            // بررسی تکراری نبودن ایمیل
-            if (users.some(user => user.email === email)) {
-                showMessage('این ایمیل قبلاً ثبت‌نام کرده است', 'error');
-                return;
-            }
+            // غیرفعال کردن دکمه
+            const registerBtn = document.getElementById('registerBtn');
+            registerBtn.disabled = true;
+            registerBtn.innerHTML = '<span class="loading"></span> در حال ثبت‌نام...';
 
-            // تولید و ذخیره کد
-            const code = generateCode();
-            verificationCodes[email] = {
-                code: code,
-                password: password,
-                timestamp: Date.now()
-            };
-            localStorage.setItem('verificationCodes', JSON.stringify(verificationCodes));
+            try {
+                // ایجاد کاربر در Authentication
+                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                const user = userCredential.user;
 
-            // شبیه‌سازی ارسال ایمیل
-            console.log(`کد تأیید برای ${email}: ${code}`);
-            showMessage(`کد تأیید به ایمیل ${email} ارسال شد`, 'success');
+                // به‌روزرسانی پروفایل با نام کاربری
+                await user.updateProfile({
+                    displayName: username
+                });
 
-            // نمایش بخش تأیید کد
-            document.getElementById('verificationSection').classList.remove('hidden');
-            document.getElementById('sendCodeBtn').textContent = 'ارسال مجدد کد';
-        }
-
-        // تأیید کد
-        function verifyCode() {
-            const email = document.getElementById('regEmail').value;
-            const code = document.getElementById('verificationCode').value;
-            const savedCode = verificationCodes[email];
-
-            if (!savedCode) {
-                showMessage('لطفاً ابتدا درخواست کد دهید', 'error');
-                return;
-            }
-
-            if (Date.now() - savedCode.timestamp > 300000) { // 5 دقیقه
-                showMessage('کد منقضی شده است. لطفاً دوباره درخواست دهید', 'error');
-                delete verificationCodes[email];
-                localStorage.setItem('verificationCodes', JSON.stringify(verificationCodes));
-                return;
-            }
-
-            if (savedCode.code === code) {
-                // ثبت‌نام موفق
-                const newUser = {
+                // ذخیره اطلاعات اضافی در Firestore
+                await db.collection('users').doc(user.uid).set({
                     email: email,
-                    password: savedCode.password,
-                    registeredAt: new Date().toISOString()
-                };
+                    username: username,
+                    registeredAt: new Date().toISOString(),
+                    uid: user.uid,
+                    updatedAt: new Date().toISOString()
+                });
+
+                showMessage('ثبت‌نام با موفقیت انجام شد', 'success');
                 
-                users.push(newUser);
-                localStorage.setItem('users', JSON.stringify(users));
-                
-                delete verificationCodes[email];
-                localStorage.setItem('verificationCodes', JSON.stringify(verificationCodes));
-                
-                showMessage('ثبت‌نام با موفقیت انجام شد. لطفاً وارد شوید', 'success');
-                
-                // برگشت به فرم ورود
-                switchTab('login');
+                // پاک کردن فرم
                 document.getElementById('regEmail').value = '';
+                document.getElementById('regUsername').value = '';
                 document.getElementById('regPassword').value = '';
                 document.getElementById('regConfirmPassword').value = '';
-                document.getElementById('verificationCode').value = '';
-                document.getElementById('verificationSection').classList.add('hidden');
                 document.getElementById('acceptRules').checked = false;
-            } else {
-                showMessage('کد تأیید اشتباه است', 'error');
+
+            } catch (error) {
+                console.error('خطا در ثبت‌نام:', error);
+                
+                let errorMessage = 'خطا در ثبت‌نام';
+                if (error.code === 'auth/email-already-in-use') {
+                    errorMessage = 'این ایمیل قبلاً ثبت‌نام شده است';
+                } else if (error.code === 'auth/invalid-email') {
+                    errorMessage = 'ایمیل نامعتبر است';
+                } else if (error.code === 'auth/weak-password') {
+                    errorMessage = 'رمز عبور ضعیف است';
+                }
+                
+                showMessage(errorMessage, 'error');
+            } finally {
+                // فعال کردن دکمه
+                registerBtn.disabled = false;
+                registerBtn.innerHTML = 'ثبت‌نام';
             }
         }
 
-        // ورود
-        function login() {
+        // ==================== ورود ====================
+        async function login() {
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
 
@@ -490,66 +563,111 @@
                 return;
             }
 
-            const user = users.find(u => u.email === email && u.password === password);
+            // غیرفعال کردن دکمه
+            const loginBtn = document.getElementById('loginBtn');
+            loginBtn.disabled = true;
+            loginBtn.innerHTML = '<span class="loading"></span> در حال ورود...';
 
-            if (user) {
-                currentUser = user;
-                localStorage.setItem('currentUser', JSON.stringify(user));
-                showUserPanel();
+            try {
+        await auth.signInWithEmailAndPassword(email, password);
                 showMessage('ورود موفقیت‌آمیز بود', 'success');
-            } else {
-                showMessage('ایمیل یا رمز عبور اشتباه است', 'error');
+                
+                // پاک کردن فرم
+                document.getElementById('loginEmail').value = '';
+                document.getElementById('loginPassword').value = '';
+
+            } catch (error) {
+                console.error('خطا در ورود:', error);
+                
+                let errorMessage = 'خطا در ورود';
+                if (error.code === 'auth/user-not-found') {
+                    errorMessage = 'کاربری با این ایمیل یافت نشد';
+                } else if (error.code === 'auth/wrong-password') {
+                    errorMessage = 'رمز عبور اشتباه است';
+                } else if (error.code === 'auth/invalid-email') {
+                    errorMessage = 'ایمیل نامعتبر است';
+                }
+                
+                showMessage(errorMessage, 'error');
+            } finally {
+                // فعال کردن دکمه
+                loginBtn.disabled = false;
+                loginBtn.innerHTML = 'ورود';
             }
         }
 
-        // خروج
-        function logout() {
-            currentUser = null;
-            localStorage.removeItem('currentUser');
-            showAuthSection();
-            document.getElementById('loginEmail').value = '';
-            document.getElementById('loginPassword').value = '';
-            showMessage('با موفقیت خارج شدید', 'info');
+        // ==================== خروج ====================
+        async function logout() {
+            try {
+                await auth.signOut();
+                showMessage('با موفقیت خارج شدید', 'info');
+            } catch (error) {
+                console.error('خطا در خروج:', error);
+                showMessage('خطا در خروج از حساب', 'error');
+            }
         }
 
-        // نمایش پنل کاربری
-        function showUserPanel() {
+        // ==================== نمایش پنل کاربری ====================
+        function showUserPanel(user, userData) {
             document.getElementById('authSection').classList.add('hidden');
             document.getElementById('userPanel').classList.remove('hidden');
-            document.getElementById('userEmail').textContent = currentUser.email;
+            
+            document.getElementById('userEmail').textContent = user.email;
+            document.getElementById('infoEmail').textContent = user.email;
+            document.getElementById('infoUsername').textContent = userData.username || user.displayName || 'کاربر';
+            document.getElementById('infoId').textContent = user.uid;
+            
+            // فرمت تاریخ
+            const registerDate = userData.registeredAt ? new Date(userData.registeredAt) : new Date();
+            document.getElementById('infoDate').textContent = registerDate.toLocaleDateString('fa-IR');
         }
 
-        // نمایش بخش احراز هویت
         function showAuthSection() {
             document.getElementById('authSection').classList.remove('hidden');
             document.getElementById('userPanel').classList.add('hidden');
         }
 
-        // تأیید حذف اکانت
+        // ==================== حذف اکانت ====================
         function confirmDeleteAccount() {
             if (confirm('آیا از حذف اکانت خود اطمینان دارید؟ این عمل غیرقابل بازگشت است.')) {
                 deleteAccount();
             }
         }
 
-        // حذف اکانت
-        function deleteAccount() {
-            users = users.filter(u => u.email !== currentUser.email);
-            localStorage.setItem('users', JSON.stringify(users));
+        async function deleteAccount() {
+            const user = auth.currentUser;
             
-            currentUser = null;
-            localStorage.removeItem('currentUser');
-            
-            showAuthSection();
-            showMessage('اکانت شما با موفقیت حذف شد', 'success');
+            if (!user) {
+                showMessage('شما وارد سیستم نیستید', 'error');
+                return;
+            }
+
+            try {
+                // حذف اطلاعات از Firestore
+                await db.collection('users').doc(user.uid).delete();
+                
+                // حذف کاربر از Authentication
+                await user.delete();
+                
+                showMessage('اکانت شما با موفقیت حذف شد', 'success');
+                
+            } catch (error) {
+                console.error('خطا در حذف اکانت:', error);
+                
+                if (error.code === 'auth/requires-recent-login') {
+                    showMessage('لطفاً مجدداً وارد شوید و سپس حذف اکانت را انجام دهید', 'error');
+                    await auth.signOut();
+                } else {
+                    showMessage('خطا در حذف اکانت', 'error');
+                }
+            }
         }
 
-        // نمایش قوانین
+        // ==================== قوانین ====================
         function showRules() {
             document.getElementById('rulesModal').style.display = 'flex';
         }
 
-        // بستن قوانین
         function closeRules() {
             document.getElementById('rulesModal').style.display = 'none';
         }
